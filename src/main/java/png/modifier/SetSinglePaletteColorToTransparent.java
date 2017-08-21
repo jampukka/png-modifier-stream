@@ -32,7 +32,7 @@ public class SetSinglePaletteColorToTransparent extends ChunkModifier {
         plte.writeTo(out);
 
         final int i = findIndex(plte.data);
-        if (i > 0) {
+        if (i >= 0) {
             // Write tRNS chunk
             TRNS.createPaletteFullyTransparent(i).writeTo(out);
         }
