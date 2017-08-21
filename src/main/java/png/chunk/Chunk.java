@@ -48,7 +48,7 @@ public abstract class Chunk {
     public void updateCRC() {
         CRC32 crc32 = new CRC32();
         crc32.update(getType());
-        crc32.update(data);
+        crc32.update(data, 0, data.length - 4);
         long crc = crc32.getValue();
         Bytes.writeUInt32(crc, data, data.length - 4);
     }
