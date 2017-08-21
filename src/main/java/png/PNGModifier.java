@@ -1,5 +1,6 @@
 package png;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -8,7 +9,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import png.chunk.Chunk;
 import png.chunk.IHDR;
 import png.modifier.ChunkModifier;
 import png.util.Bytes;
@@ -20,11 +20,18 @@ public class PNGModifier {
 
     private final Map<String, ChunkModifier> typeToModifier = new HashMap<>();
 
-    public void addModifier(String type, ChunkModifier modifier) {
+    public PNGModifier addModifier(String type, ChunkModifier modifier) {
         if (typeToModifier.containsKey(type)) {
             throw new IllegalArgumentException(type + " already has a defined ChunkHandler!");
         }
         typeToModifier.put(type, modifier);
+        return this;
+    }
+
+    public byte[] stream(InputStream in) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        stream(in, baos);
+        return baos.toByteArray();
     }
 
     public void stream(InputStream in, OutputStream out) throws IOException {
@@ -44,7 +51,7 @@ public class PNGModifier {
             throw new IllegalArgumentException("IHDR must be first chunk!");
         }
         final IHDR ihdr = new IHDR(in, len);
-        writeChunk(out, ihdr);
+        ihdr.writeTo(out);
 
         while (true) {
             // Read length and type
@@ -73,12 +80,6 @@ public class PNGModifier {
         // Copy CRC as well
         int bytesToPass = len + 4;
         Bytes.copy(in, out, new byte[Math.min(bytesToPass, 8192)], bytesToPass);
-    }
-
-    public static void writeChunk(OutputStream out, Chunk chunk) throws IOException {
-        Bytes.writeInt32(out, chunk.data.length - 4);
-        out.write(chunk.getType());
-        out.write(chunk.data);
     }
 
 }

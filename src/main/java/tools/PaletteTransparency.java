@@ -1,4 +1,4 @@
-package png;
+package tools;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -12,12 +12,13 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import png.modifier.AddSingleTransparentColorToPalette;
+import png.PNGModifier;
+import png.modifier.SetSinglePaletteColorToTransparent;
 
-public class SetSinglePaletteColorToTransparent {
+public class PaletteTransparency {
 
     public static void main(String[] args) throws IOException {
-        if (args.length < 2) {
+        if (args.length < 1) {
             System.err.println("Missing arguments!");
             return;
         }
@@ -25,13 +26,16 @@ public class SetSinglePaletteColorToTransparent {
         int color = Integer.parseInt(args[0].substring(offset), 16);
         try (InputStream in = getInputStream(args);
                 OutputStream out = getOutputStream(args)) {
-            PNGModifier modifier = new PNGModifier();
-            modifier.addModifier("PLTE", new AddSingleTransparentColorToPalette(color));
-            modifier.stream(in, out);
+            new PNGModifier()
+                .addModifier("PLTE", new SetSinglePaletteColorToTransparent(color))
+                .stream(in, out);
         }
     }
 
     private static InputStream getInputStream(String[] args) throws IOException {
+        if (args.length < 2) {
+            return new BufferedInputStream(System.in);
+        }
         try {
             URL url = new URL(args[1]);
             return new BufferedInputStream(url.openStream());

@@ -2,6 +2,7 @@ package png.chunk;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.CRC32;
 
@@ -38,14 +39,24 @@ public abstract class Chunk {
         }
     }
 
-    protected Chunk(byte[] type, byte[] data) {
-        CRC32 crc32 = new CRC32();
-        crc32.update(type);
-        crc32.update(data);
-        long crc = crc32.getValue();
+    protected Chunk(byte[] data) {
         this.data = new byte[data.length + 4];
         System.arraycopy(data, 0, this.data, 0, data.length);
-        Bytes.writeUInt32(crc, this.data, data.length);
+        updateCRC();
+    }
+
+    public void updateCRC() {
+        CRC32 crc32 = new CRC32();
+        crc32.update(getType());
+        crc32.update(data);
+        long crc = crc32.getValue();
+        Bytes.writeUInt32(crc, data, data.length - 4);
+    }
+
+    public void writeTo(final OutputStream out) throws IOException {
+        Bytes.writeInt32(out, data.length - 4);
+        out.write(getType());
+        out.write(data);
     }
 
     private String getTypeStr() {

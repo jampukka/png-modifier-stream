@@ -16,7 +16,7 @@ public class TRNS extends Chunk {
     }
 
     private TRNS(byte[] data) {
-        super(TYPE, data);
+        super(data);
     }
 
     public static TRNS createPaletteFullyTransparent(int i) {

@@ -10,16 +10,16 @@ import png.chunk.IHDR;
 import png.chunk.PLTE;
 import png.chunk.TRNS;
 
-public class AddSingleTransparentColorToPalette extends ChunkModifier {
+public class SetSinglePaletteColorToTransparent extends ChunkModifier {
 
     private final byte r;
     private final byte g;
     private final byte b;
 
-    public AddSingleTransparentColorToPalette(int rgb) {
-        this.r = (byte) ((rgb >> 16) & 0xFF);
-        this.g = (byte) ((rgb >>  8) & 0xFF);
-        this.b = (byte) ((rgb >>  0) & 0xFF);
+    public SetSinglePaletteColorToTransparent(int rgb) {
+        this.r = (byte) ((rgb >>> 16) & 0xFF);
+        this.g = (byte) ((rgb >>>  8) & 0xFF);
+        this.b = (byte) ((rgb >>>  0) & 0xFF);
     }
 
     public void handle(IHDR ihdr, int len, byte[] type, InputStream in, OutputStream out) throws IOException {
@@ -29,12 +29,12 @@ public class AddSingleTransparentColorToPalette extends ChunkModifier {
         }
 
         final PLTE plte = new PLTE(in, len);
-        PNGModifier.writeChunk(out, plte);
+        plte.writeTo(out);
 
         final int i = findIndex(plte.data);
         if (i > 0) {
             // Write tRNS chunk
-            PNGModifier.writeChunk(out, TRNS.createPaletteFullyTransparent(i));
+            TRNS.createPaletteFullyTransparent(i).writeTo(out);
         }
     }
 
